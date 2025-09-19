@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Хоккейная виселица: Угадай команду КХЛ/ВХЛ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-top: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #fff;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .hangman-container {
+            width: 300px;
+            height: 250px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        #hangman-drawing {
+            width: 100%;
+            height: 100%;
+        }
+
+        .word-display {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            font-size: 2rem;
+            letter-spacing: 5px;
+            font-weight: bold;
+        }
+
+        .letter {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 3px solid #1a73e8;
+            text-transform: uppercase;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .letter-btn {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(to bottom, #4a6fa5, #2a4a7a);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .letter-btn:hover:not(:disabled) {
+            background: linear-gradient(to bottom, #5c8ac0, #3a6aaa);
+            transform: translateY(-2px);
+        }
+
+        .letter-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(to bottom, #d54c4c, #a02a2a);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #e56565, #b53b3b);
+            transform: translateY(-2px);
+        }
+
+        #hint-btn {
+            background: linear-gradient(to bottom, #4caf50, #2e7d32);
+        }
+
+        #hint-btn:hover {
+            background: linear-gradient(to bottom, #66bb6a, #388e3c);
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px 40px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid gold;
+        }
+
+        .message h2 {
+            margin-bottom: 15px;
+            color: gold;
+            font-size: 2rem;
+        }
+
+        .message p {
+            margin: 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            z-index: 99;
+        }
+
+        .hint-container {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #90caf9;
+        }
+
+        .attempts {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .team-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #2a4a7a;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .letter-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .word-display {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="team-logo">🏒</div>
+    <header>
+        <h1>Хоккейная виселица</h1>
+        <p class="subtitle">Угадайте команду КХЛ или ВХЛ по буквам</p>
+    </header>
+
+    <div class="container">
+        <div class="game-area">
+            <div class="hangman-container">
+                <svg id="hangman-drawing" viewBox="0 0 200 200"></svg>
+            </div>
+            
+            <div class="attempts">Осталось попыток: <span id="attempts-left">6</span></div>
+            
+            <div class="word-display" id="word-display"></div>
+            
+            <div class="hint-container" id="hint-container">
+                Подсказка: <span id="hint-text"></span>
+            </div>
+            
+            <div class="keyboard" id="keyboard"></div>
+            
+            <div class="controls">
+                <button id="hint-btn">Подсказка</button>
+                <button id="restart-btn">Новая игра</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="message" id="message">
+        <h2 id="message-title">Поздравляем!</h2>
+        <p id="message-text">Вы угадали слово: <span id="guessed-word"></span></p>
+        <button id="play-again">Играть снова</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Список хоккейных команд КХЛ и ВХЛ с подсказками
+            const hockeyTeams = [
+                {name: "АВАНГАРД", hint: "Команда из Омска"},
+                {name: "АВТОМОБИЛИСТ", hint: "Екатеринбургский клуб"},
+                {name: "АДМИРАЛ", hint: "Приморский клуб"},
+                {name: "АК БАРС", hint: "Казанский клуб"},
+                {name: "АМУР", hint: "Команда из Хабаровска"},
+                {name: "БАРЫС", hint: "Казахстанский клуб"},
+                {name: "ДИНАМО М", hint: "Московское Динамо"},
+                {name: "ДИНАМО Р", hint: "Рижское Динамо"},
+                {name: "ЛАДА", hint: "Тольяттинский клуб"},
+                {name: "ЛОКОМОТИВ", hint: "Ярославский клуб"},
+                {name: "МЕТАЛЛУРГ", hint: "Магнитогорский клуб"},
+                {name: "НЕФТЕХИМИК", hint: "Нижнекамский клуб"},
+                {name: "САЛАВАТ ЮЛАЕВ", hint: "Уфимский клуб"},
+                {name: "СЕВЕРСТАЛЬ", hint: "Череповецкий клуб"},
+                {name: "СИБИРЬ", hint: "Новосибирский клуб"},
+                {name: "СКА", hint: "Петербургская армия"},
+                {name: "СПАРТАК", hint: "Московский клуб"},
+                {name: "ТОРПЕДО", hint: "Нижегородский клуб"},
+                {name: "ТРАКТОР", hint: "Челябинский клуб"},
+                {name: "ХК СОЧИ", hint: "Клуб из Сочи"},
+                {name: "АКМ", hint: "Команда из Тулы"},
+                {name: "БАРС", hint: "Казанский клуб ВХЛ"},
+                {name: "БУРАН", hint: "Воронежский клуб"},
+                {name: "ГОРНЯК", hint: "Команда из Учалов"},
+                {name: "ДИЗЕЛЬ", hint: "Пензенский клуб"},
+                {name: "ДИНАМО А", hint: "Динамо из Барнаула"},
+                {name: "ДИНАМО С", hint: "Динамо из Санкт-Петербурга"},
+                {name: "ЗАУРАЛЬЕ", hint: "Курганский клуб"},
+                {name: "ЗВЕЗДА", hint: "Чеховский клуб"},
+                {name: "ИЖСТАЛЬ", hint: "Ижевский клуб"},
+                {name: "КРИСТАЛЛ", hint: "Саратовский клуб"},
+                {name: "МАГНИТКА", hint: "Команда из Магнитогорска"},
+                {name: "МЕТАЛЛУРГ Н", hint: "Новокузнецкий клуб"},
+                {name: "МОЛОТ", hint: "Пермский клуб"},
+                {name: "НЕФТЯНИК", hint: "Альметьевский клуб"},
+                {name: "НОРИЛЬСК", hint: "Клуб с севера"},
+                {name: "ОЛИМПИЯ", hint: "Кирово-Чепецкий клуб"},
+                {name: "ОМСКИЕ КРЫЛЬЯ", hint: "Фарм-клуб Авангарда"},
+                {name: "РОСТОВ", hint: "Клуб из Ростова-на-Дону"},
+                {name: "РУБИН", hint: "Тюменский клуб"},
+                {name: "РЯЗАНЬ", hint: "Клуб из Рязани"},
+                {name: "СКА ВМФ", hint: "Фарм-клуб СКА"},
+                {name: "СОКОЛ", hint: "Красноярский клуб"},
+                {name: "ТОРОС", hint: "Нефтекамский клуб"},
+                {name: "ТОРПЕДО Г", hint: "Нижегородский клуб ВХЛ"},
+                {name: "ТАМБОВ", hint: "Клуб из Тамбова"},
+                {name: "ЮГРА", hint: "Ханты-Мансийский клуб"},
+                {name: "ХИМИК", hint: "Воскресенский клуб"}
+            ];
+
+            // Элементы DOM
+            const wordDisplay = document.getElementById('word-display');
+            const hintText = document.getElementById('hint-text');
+            const attemptsLeft = document.getElementById('attempts-left');
+            const keyboard = document.getElementById('keyboard');
+            const hangmanDrawing = document.getElementById('hangman-drawing');
+            const hintBtn = document.getElementById('hint-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const message = document.getElementById('message');
+            const messageTitle = document.getElementById('message-title');
+            const messageText = document.getElementById('message-text');
+            const guessedWord = document.getElementById('guessed-word');
+            const playAgainBtn = document.getElementById('play-again');
+            const overlay = document.getElementById('overlay');
+
+            // Игровые переменные
+            let selectedWord = '';
+            let correctLetters = [];
+            let wrongLetters = [];
+            let maxAttempts = 6;
+            let attempts = maxAttempts;
+            let gameOver = false;
+
+            // Инициализация игры
+            function initGame() {
+                // Выбираем случайное слово
+                const randomIndex = Math.floor(Math.random() * hockeyTeams.length);
+                selectedWord = hockeyTeams[randomIndex].name;
+                hintText.textContent = hockeyTeams[randomIndex].hint;
+                
+                // Сбрасываем игровые переменные
+                correctLetters = [];
+                wrongLetters = [];
+                attempts = maxAttempts;
+                gameOver = false;
+                
+                // Очищаем отображение
+                wordDisplay.innerHTML = '';
+                keyboard.innerHTML = '';
+                hangmanDrawing.innerHTML = '';
+                
+                // Обновляем отображение попыток
+                attemptsLeft.textContent = attempts;
+                
+                // Создаем отображение слова
+                for (let i = 0; i < selectedWord.length; i++) {
+                    const letter = selectedWord[i];
+                    const letterElement = document.createElement('div');
+                    letterElement.classList.add('letter');
+                    
+                    if (letter === ' ') {
+                        letterElement.textContent = '';
+                        letterElement.style.borderBottom = 'none';
+                        letterElement.style.marginRight = '15px';
+                    } else {
+                        letterElement.textContent = correctLetters.includes(letter) ? letter : '';
+                    }
+                    
+                    wordDisplay.appendChild(letterElement);
+                }
+                
+                // Создаем клавиатуру
+                const russianLetters = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+                for (let letter of russianLetters) {
+                    const button = document.createElement('button');
+                    button.classList.add('letter-btn');
+                    button.textContent = letter;
+                    button.addEventListener('click', () => handleGuess(letter));
+                    keyboard.appendChild(button);
+                }
+                
+                // Скрываем сообщение и оверлей
+                message.style.display = 'none';
+                overlay.style.display = 'none';
+            }
+
+            // Обработка угадывания буквы
+            function handleGuess(letter) {
+                if (gameOver) return;
+                
+                const letterButtons = document.querySelectorAll('.letter-btn');
+                const button = Array.from(letterButtons).find(btn => btn.textContent === letter);
+                
+                if (button && !button.disabled) {
+                    button.disabled = true;
+                    
+                    if (selectedWord.includes(letter)) {
+                        // Правильная буква
+                        if (!correctLetters.includes(letter)) {
+                            correctLetters.push(letter);
+                            updateWordDisplay();
+                            
+                            // Проверяем, выиграл ли игрок
+                            if (checkWin()) {
+                                showMessage('Поздравляем!', `Вы угадали команду: ${selectedWord}`);
+                            }
+                        }
+                    } else {
+                        // Неправильная буква
+                        if (!wrongLetters.includes(letter)) {
+                            wrongLetters.push(letter);
+                            attempts--;
+                            attemptsLeft.textContent = attempts;
+                            drawHangman();
+                            
+                            // Проверяем, проиграл ли игрок
+                            if (attempts === 0) {
+                                showMessage('Игра окончена', `Загаданная команда: ${selectedWord}`);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Обновление отображения слова
+            function updateWordDisplay() {
+                const letterElements = document.querySelectorAll('.letter');
+                
+                for (let i = 0; i < selectedWord.length; i++) {
+                    const letter = selectedWord[i];
+                    
+                    if (correctLetters.includes(letter)) {
+                        letterElements[i].textContent = letter;
+                    }
+                }
+            }
+
+            // Проверка выигрыша
+            function checkWin() {
+                for (let letter of selectedWord) {
+                    if (letter !== ' ' && !correctLetters.includes(letter)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            // Отрисовка виселицы
+            function drawHangman() {
+                hangmanDrawing.innerHTML = '';
+                const errors = maxAttempts - attempts;
+                
+                // Основание
+                if (errors >= 1) {
+                    const base = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    base.setAttribute('x1', '40');
+                    base.setAttribute('y1', '180');
+                    base.setAttribute('x2', '160');
+                    base.setAttribute('y2', '180');
+                    base.setAttribute('stroke', 'white');
+                    base.setAttribute('stroke-width', '4');
+                    hangmanDrawing.appendChild(base);
+                }
+                
+                // Столб
+                if (errors >= 2) {
+                    const pole = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    pole.setAttribute('x1', '100');
+                    pole.setAttribute('y1', '180');
+                    pole.setAttribute('x2', '100');
+                    pole.setAttribute('y2', '20');
+                    pole.setAttribute('stroke', 'white');
+                    pole.setAttribute('stroke-width', '4');
+                    hangmanDrawing.appendChild(pole);
+                }
+                
+                // Перекладина
+                if (errors >= 3) {
+                    const beam = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    beam.setAttribute('x1', '100');
+                    beam.setAttribute('y1', '20');
+                    beam.setAttribute('x2', '160');
+                    beam.setAttribute('y2', '20');
+                    beam.setAttribute('stroke', 'white');
+                    beam.setAttribute('stroke-width', '4');
+                    hangmanDrawing.appendChild(beam);
+                }
+                
+                // Веревка
+                if (errors >= 4) {
+                    const rope = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    rope.setAttribute('x1', '160');
+                    rope.setAttribute('y1', '20');
+                    rope.setAttribute('x2', '160');
+                    rope.setAttribute('y2', '40');
+                    rope.setAttribute('stroke', 'white');
+                    rope.setAttribute('stroke-width', '2');
+                    hangmanDrawing.appendChild(rope);
+                }
+                
+                // Голова
+                if (errors >= 5) {
+                    const head = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    head.setAttribute('cx', '160');
+                    head.setAttribute('cy', '50');
+                    head.setAttribute('r', '10');
+                    head.setAttribute('stroke', 'white');
+                    head.setAttribute('stroke-width', '2');
+                    head.setAttribute('fill', 'none');
+                    hangmanDrawing.appendChild(head);
+                }
+                
+                // Тело
+                if (errors >= 6) {
+                    const body = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    body.setAttribute('x1', '160');
+                    body.setAttribute('y1', '60');
+                    body.setAttribute('x2', '160');
+                    body.setAttribute('y2', '100');
+                    body.setAttribute('stroke', 'white');
+                    body.setAttribute('stroke-width', '2');
+                    hangmanDrawing.appendChild(body);
+                }
+            }
+
+            // Показать сообщение
+            function showMessage(title, text) {
+                gameOver = true;
+                messageTitle.textContent = title;
+                messageText.textContent = text;
+                guessedWord.textContent = selectedWord;
+                message.style.display = 'block';
+                overlay.style.display = 'block';
+            }
+
+            // Обработчики событий
+            hintBtn.addEventListener('click', function() {
+                if (attempts > 1 && !gameOver) {
+                    attempts--;
+                    attemptsLeft.textContent = attempts;
+                    drawHangman();
+                    
+                    // Показываем случайную неправильную букву
+                    const hiddenLetters = [];
+                    for (let letter of selectedWord) {
+                        if (letter !== ' ' && !correctLetters.includes(letter) && !hiddenLetters.includes(letter)) {
+                            hiddenLetters.push(letter);
+                        }
+                    }
+                    
+                    if (hiddenLetters.length > 0) {
+                        const randomLetter = hiddenLetters[Math.floor(Math.random() * hiddenLetters.length)];
+                        handleGuess(randomLetter);
+                    }
+                    
+                    if (attempts === 0) {
+                        showMessage('Игра окончена', `Загаданная команда: ${selectedWord}`);
+                    }
+                }
+            });
+
+            restartBtn.addEventListener('click', initGame);
+            playAgainBtn.addEventListener('click', initGame);
+
+            // Запуск игры при загрузке
+            initGame();
+        });
+    </script>
+</body>
+</html>
